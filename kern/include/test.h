@@ -163,6 +163,8 @@ void matchmaker(uint32_t);
  * stoplight.c.
  */
 
+int straight_mapping(int X);
+int left_mapping(int X);
 void gostraight(uint32_t, uint32_t);
 void turnleft(uint32_t, uint32_t);
 void turnright(uint32_t, uint32_t);

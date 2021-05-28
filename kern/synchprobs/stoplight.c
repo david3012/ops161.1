@@ -69,12 +69,30 @@
 #include <test.h>
 #include <synch.h>
 
+struct lock *quadrant[4];
+
+int straight_mapping(int X) {
+	int direction;
+	direction = (X+3) % 4;
+	return direction;
+}
+
+int left_mapping(int X) {
+	int direction;
+	direction = (X+2) % 4;
+	return direction;
+}
+
 /*
  * Called by the driver during initialization.
  */
 
 void
 stoplight_init() {
+	quadrant[0] = lock_create("quadrant0");
+	quadrant[1] = lock_create("quadrant1");
+	quadrant[2] = lock_create("quadrant2");
+	quadrant[3] = lock_create("quadrant3");
 	return;
 }
 
@@ -83,36 +101,69 @@ stoplight_init() {
  */
 
 void stoplight_cleanup() {
+	lock_destroy(quadrant[0]);
+	lock_destroy(quadrant[1]);
+	lock_destroy(quadrant[2]);
+	lock_destroy(quadrant[3]);
 	return;
 }
 
 void
 turnright(uint32_t direction, uint32_t index)
 {
-	(void)direction;
-	(void)index;
+	//(void)direction;
+	//(void)index;
 	/*
 	 * Implement this function.
 	 */
+	lock_acquire(quadrant[direction]);
+	inQuadrant(direction, index);
+	leaveIntersection(index);
+	lock_release(quadrant[direction]);
 	return;
 }
 void
 gostraight(uint32_t direction, uint32_t index)
 {
-	(void)direction;
-	(void)index;
+	//(void)direction;
+	//(void)index;
 	/*
 	 * Implement this function.
 	 */
+	int i;
+	for (i = 0; i < 4; i++) {
+		if ((i == (int)direction) || (i == straight_mapping(direction)))
+			lock_acquire(quadrant[i]);
+	}
+	inQuadrant(direction, index);
+	inQuadrant(straight_mapping(direction), index);
+	leaveIntersection(index);
+	for (i = 3; i >= 0; i--) {
+		if ((i == (int)direction) || (i == straight_mapping(direction)))
+			lock_release(quadrant[i]);
+	}
 	return;
 }
 void
 turnleft(uint32_t direction, uint32_t index)
 {
-	(void)direction;
-	(void)index;
+	//(void)direction;
+	//(void)index;
 	/*
 	 * Implement this function.
 	 */
+	int i;
+	for (i = 0; i < 4; i++) {
+		if ((i == (int)direction) || (i == straight_mapping(direction)) || (i == left_mapping(direction)))
+			lock_acquire(quadrant[i]);
+	}
+	inQuadrant(direction, index);
+	inQuadrant(straight_mapping(direction), index);
+	inQuadrant(left_mapping(direction), index);
+	leaveIntersection(index);
+	for (i = 3; i >= 0; i--) {
+		if ((i == (int)direction) || (i == straight_mapping(direction)) || (i == left_mapping(direction)))
+			lock_release(quadrant[i]);
+	}
 	return;
 }
