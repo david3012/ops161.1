@@ -45,6 +45,8 @@
 #include <syscall.h>
 #include <test.h>
 
+#include <kern/unistd.h>
+#include <file_syscall.h>
 /*
  * Load program "progname" and start running it in usermode.
  * Does not return except on error.
@@ -96,6 +98,10 @@ runprogram(char *progname)
 		/* p_addrspace will go away when curproc is destroyed */
 		return result;
 	}
+
+	char filename[] = "con:";
+	initialize_console(filename, O_WRONLY, 0664, STDOUT_FILENO);
+	 
 
 	/* Warp to user mode. */
 	enter_new_process(0 /*argc*/, NULL /*userspace addr of argv*/,

@@ -82,6 +82,11 @@ proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
+	int i;
+	for (i = 0; i < OPEN_MAX; i++) {
+		proc->f_table[i] = NULL;
+	}
+
 	return proc;
 }
 
@@ -110,6 +115,12 @@ proc_destroy(struct proc *proc)
 	 * reference to this structure. (Otherwise it would be
 	 * incorrect to destroy it.)
 	 */
+	int i;
+	for (i = 0; i < OPEN_MAX; i++) {
+		if (proc->f_table[i]) {
+			proc->f_table[i] = NULL;
+		}
+	}
 
 	/* VFS fields */
 	if (proc->p_cwd) {
